@@ -71,6 +71,16 @@
                         <span class="btn-icon">🚀</span>
                         <span class="btn-text">Start Experiment</span>
                     </button>
+                    <div class="control-buttons">
+                        <button id="reset-btn" class="control-btn reset-btn" disabled>
+                            <span class="btn-icon">🔄</span>
+                            <span>Reset</span>
+                        </button>
+                        <button id="stop-btn" class="control-btn stop-btn" disabled>
+                            <span class="btn-icon">🛑</span>
+                            <span>Stop</span>
+                        </button>
+                    </div>
                     <p class="control-hint" id="control-hint">Click to begin the session</p>
                 </div>
             </div>
@@ -135,6 +145,14 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Experiment Logs -->
+        <div id="logs-section" class="logs-section hidden">
+            <h2 class="section-title">📋 Experiment History</h2>
+            <div id="logs-container" class="logs-container">
+                <!-- Logs will be inserted here -->
             </div>
         </div>
 
