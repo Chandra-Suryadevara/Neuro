@@ -1,7 +1,7 @@
 const socket = io();
 
 let currentQuestion = null;
-let timeLeft = 8;
+let timeLeft = 5;
 let timerInterval = null;
 let participantGroup = null;
 
@@ -126,7 +126,7 @@ function startTimer() {
 // Update timer display
 function updateTimerDisplay() {
     timerElement.textContent = timeLeft + 's';
-    if (timeLeft > 3) {
+    if (timeLeft > 2) {
         timerElement.classList.remove('urgent');
     }
 }

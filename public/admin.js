@@ -5,6 +5,8 @@ const totalParticipants = document.getElementById('total-participants');
 const complexCount = document.getElementById('complex-count');
 const simpleCount = document.getElementById('simple-count');
 const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
+const stopBtn = document.getElementById('stop-btn');
 const statusBadge = document.getElementById('status-badge');
 const statusText = document.getElementById('status-text');
 const controlHint = document.getElementById('control-hint');
@@ -13,6 +15,8 @@ const progressFill = document.getElementById('progress-fill');
 const sessionInfo = document.getElementById('session-info');
 const sessionStatus = document.getElementById('session-status');
 const resultsSection = document.getElementById('results-section');
+const logsSection = document.getElementById('logs-section');
+const logsContainer = document.getElementById('logs-container');
 
 let sessionData = {
     participantCount: 0,
@@ -32,6 +36,9 @@ let resultsData = {
 
 // Connect as admin
 socket.emit('admin-join');
+
+// Request logs on connection
+socket.emit('get-logs');
 
 // Update UI with session data
 socket.on('session-update', (data) => {
@@ -62,11 +69,35 @@ socket.on('results-data', (data) => {
     showResults();
 });
 
+// Listen for session reset
+socket.on('session-reset', () => {
+    resetBtn.disabled = true;
+    stopBtn.disabled = true;
+    startBtn.disabled = false;
+    startBtn.innerHTML = '<span class="btn-icon">🚀</span><span class="btn-text">Start Experiment</span>';
+    controlHint.textContent = 'Waiting for participants to join...';
+    statusBadge.classList.remove('active');
+    statusText.textContent = 'Ready';
+    sessionInfo.classList.add('hidden');
+    resultsSection.classList.add('hidden');
+    resultsSection.classList.remove('visible');
+
+    // Request updated logs
+    socket.emit('get-logs');
+});
+
+// Listen for experiment logs
+socket.on('experiment-logs', (logs) => {
+    displayLogs(logs);
+});
+
 // Start session
 startBtn.addEventListener('click', () => {
     if (!sessionData.sessionStarted && sessionData.participantCount > 0) {
         socket.emit('start-session');
         startBtn.disabled = true;
+        resetBtn.disabled = false;
+        stopBtn.disabled = false;
         startBtn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Session Active</span>';
         controlHint.textContent = 'Experiment in progress...';
         statusBadge.classList.add('active');
@@ -78,6 +109,20 @@ startBtn.addEventListener('click', () => {
     }
 });
 
+// Reset session
+resetBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset the experiment? This will disconnect all participants and save the current session.')) {
+        socket.emit('reset-session');
+    }
+});
+
+// Stop experiment
+stopBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to stop the experiment? This will end the session for all participants.')) {
+        socket.emit('stop-experiment');
+    }
+});
+
 // Update UI
 function updateUI() {
     // Animate count changes
@@ -85,18 +130,24 @@ function updateUI() {
     animateCount(complexCount, sessionData.complexCount);
     animateCount(simpleCount, sessionData.simpleCount);
 
-    // Update button state
+    // Update button states
     if (sessionData.sessionStarted) {
         startBtn.disabled = true;
+        resetBtn.disabled = false;
+        stopBtn.disabled = false;
         startBtn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Session Active</span>';
         statusBadge.classList.add('active');
         statusText.textContent = 'Active';
         sessionInfo.classList.remove('hidden');
     } else if (sessionData.participantCount > 0) {
         startBtn.disabled = false;
+        resetBtn.disabled = true;
+        stopBtn.disabled = true;
         controlHint.textContent = `Ready to start with ${sessionData.participantCount} participant${sessionData.participantCount > 1 ? 's' : ''}`;
     } else {
         startBtn.disabled = true;
+        resetBtn.disabled = true;
+        stopBtn.disabled = true;
         controlHint.textContent = 'Waiting for participants to join...';
     }
 
@@ -282,6 +333,53 @@ function showResults() {
     setTimeout(() => {
         resultsSection.classList.add('visible');
     }, 100);
+}
+
+// Display logs
+function displayLogs(logs) {
+    if (logs.length === 0) {
+        logsContainer.innerHTML = '<p class="no-logs">No experiment logs yet</p>';
+        return;
+    }
+
+    logsContainer.innerHTML = '';
+
+    // Display logs in reverse order (newest first)
+    logs.reverse().forEach(log => {
+        const logCard = document.createElement('div');
+        logCard.className = 'log-card';
+
+        const date = new Date(log.timestamp);
+        const complexRisky = log.results.filter(r => r.group === 'complex' && r.finalChoice === '100-risky').length;
+        const simpleRisky = log.results.filter(r => r.group === 'simple' && r.finalChoice === '100-risky').length;
+
+        logCard.innerHTML = `
+            <div class="log-header">
+                <span class="log-id">Experiment #${log.experimentId}</span>
+                <span class="log-date">${date.toLocaleString()}</span>
+            </div>
+            <div class="log-stats">
+                <div class="log-stat">
+                    <span class="log-label">Participants:</span>
+                    <span class="log-value">${log.participantCount}</span>
+                </div>
+                <div class="log-stat">
+                    <span class="log-label">Complex (risky):</span>
+                    <span class="log-value">${complexRisky}/${log.complexGroupSize}</span>
+                </div>
+                <div class="log-stat">
+                    <span class="log-label">Simple (risky):</span>
+                    <span class="log-value">${simpleRisky}/${log.simpleGroupSize}</span>
+                </div>
+                ${log.status === 'stopped' ? '<span class="log-stopped">⚠ Stopped</span>' : ''}
+            </div>
+        `;
+
+        logsContainer.appendChild(logCard);
+    });
+
+    // Show logs section
+    logsSection.classList.remove('hidden');
 }
 
 // Animate count

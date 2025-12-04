@@ -24,6 +24,10 @@ let sessionState = {
     results: []
 };
 
+// Experiment logs (stores completed experiments)
+let experimentLogs = [];
+let currentExperimentId = 1;
+
 // Generate complex math question (4 options)
 function generateComplexQuestion() {
     const operations = ['+', '-', '*'];
@@ -264,6 +268,106 @@ io.on('connection', (socket) => {
         io.to('admin-room').emit('results-data', sessionState.results);
     });
 
+    // Admin resets session
+    socket.on('reset-session', () => {
+        console.log('Session reset by admin');
+
+        // Save current experiment to logs if there are results
+        if (sessionState.results.length > 0) {
+            experimentLogs.push({
+                experimentId: currentExperimentId++,
+                timestamp: new Date().toISOString(),
+                participantCount: sessionState.participants.size,
+                complexGroupSize: sessionState.complexGroup.length,
+                simpleGroupSize: sessionState.simpleGroup.length,
+                results: sessionState.results
+            });
+        }
+
+        // Disconnect all participants
+        sessionState.participants.forEach((participant, socketId) => {
+            const participantSocket = io.sockets.sockets.get(socketId);
+            if (participantSocket) {
+                participantSocket.emit('session-ended');
+                participantSocket.disconnect(true);
+            }
+        });
+
+        // Reset session state
+        sessionState = {
+            participants: new Map(),
+            sessionActive: false,
+            sessionStarted: false,
+            complexGroup: [],
+            simpleGroup: [],
+            completedParticipants: new Set(),
+            results: []
+        };
+
+        // Notify admin
+        io.to('admin-room').emit('session-reset');
+        io.to('admin-room').emit('session-update', {
+            participantCount: 0,
+            complexCount: 0,
+            simpleCount: 0,
+            sessionActive: false,
+            sessionStarted: false
+        });
+    });
+
+    // Admin stops experiment
+    socket.on('stop-experiment', () => {
+        console.log('Experiment stopped by admin');
+
+        // Save partial results
+        if (sessionState.results.length > 0 || sessionState.participants.size > 0) {
+            experimentLogs.push({
+                experimentId: currentExperimentId++,
+                timestamp: new Date().toISOString(),
+                status: 'stopped',
+                participantCount: sessionState.participants.size,
+                complexGroupSize: sessionState.complexGroup.length,
+                simpleGroupSize: sessionState.simpleGroup.length,
+                results: sessionState.results
+            });
+        }
+
+        // Notify all participants
+        io.emit('session-ended');
+
+        // Reset session
+        sessionState.participants.forEach((participant, socketId) => {
+            const participantSocket = io.sockets.sockets.get(socketId);
+            if (participantSocket) {
+                participantSocket.disconnect(true);
+            }
+        });
+
+        sessionState = {
+            participants: new Map(),
+            sessionActive: false,
+            sessionStarted: false,
+            complexGroup: [],
+            simpleGroup: [],
+            completedParticipants: new Set(),
+            results: []
+        };
+
+        io.to('admin-room').emit('session-reset');
+        io.to('admin-room').emit('session-update', {
+            participantCount: 0,
+            complexCount: 0,
+            simpleCount: 0,
+            sessionActive: false,
+            sessionStarted: false
+        });
+    });
+
+    // Admin requests experiment logs
+    socket.on('get-logs', () => {
+        io.to('admin-room').emit('experiment-logs', experimentLogs);
+    });
+
     // Handle disconnect
     socket.on('disconnect', () => {
         console.log('Disconnected:', socket.id);
@@ -319,7 +423,7 @@ function sendQuestion(socket, participant) {
 
     socket.emit('question', {
         questionNumber: participant.currentQuestion + 1,
-        totalQuestions: 10,
+        totalQuestions: 5,
         question: questionData.question,
         options: questionData.options,
         correctAnswer: questionData.correctAnswer,
@@ -331,7 +435,7 @@ function sendQuestion(socket, participant) {
 // Helper: Check if all participants completed quiz
 function checkAllQuizzesComplete() {
     const allComplete = Array.from(sessionState.participants.values())
-        .every(p => p.currentQuestion >= 10 || p.completed);
+        .every(p => p.currentQuestion >= 5 || p.completed);
 
     if (allComplete) {
         io.to('admin-room').emit('all-quizzes-complete');
