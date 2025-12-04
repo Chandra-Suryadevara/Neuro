@@ -28,40 +28,79 @@ let sessionState = {
 let experimentLogs = [];
 let currentExperimentId = 1;
 
-// Generate complex math question (4 options)
+// Generate complex math question (algebra, calculus)
 function generateComplexQuestion() {
-    const operations = ['+', '-', '*'];
-    const op = operations[Math.floor(Math.random() * operations.length)];
+    const questionTypes = ['quadratic', 'derivative', 'algebraic', 'exponent', 'equation'];
+    const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
 
-    let num1, num2, answer;
+    let question, answer, options;
 
-    if (op === '*') {
-        num1 = Math.floor(Math.random() * 12) + 2;
-        num2 = Math.floor(Math.random() * 12) + 2;
-        answer = num1 * num2;
-    } else if (op === '+') {
-        num1 = Math.floor(Math.random() * 50) + 10;
-        num2 = Math.floor(Math.random() * 50) + 10;
-        answer = num1 + num2;
+    if (type === 'quadratic') {
+        // Solve: x² + bx + c = 0, find x
+        const a = Math.floor(Math.random() * 3) + 1;
+        const b = Math.floor(Math.random() * 10) - 5;
+        const c = Math.floor(Math.random() * 10) - 5;
+
+        // Using quadratic formula: x = (-b ± √(b²-4ac)) / 2a
+        const discriminant = b * b - 4 * a * c;
+
+        if (discriminant >= 0) {
+            const x1 = Math.round((-b + Math.sqrt(discriminant)) / (2 * a));
+            const x2 = Math.round((-b - Math.sqrt(discriminant)) / (2 * a));
+            answer = Math.max(x1, x2); // Take positive root
+            question = `Solve for x: ${a}x² ${b >= 0 ? '+' : ''}${b}x ${c >= 0 ? '+' : ''}${c} = 0`;
+        } else {
+            // Fallback to simpler quadratic
+            answer = 3;
+            question = `Solve for x: x² - 9 = 0`;
+        }
+
+    } else if (type === 'derivative') {
+        // Derivative of x^n
+        const n = Math.floor(Math.random() * 5) + 2;
+        const x = Math.floor(Math.random() * 4) + 1;
+        answer = n * Math.pow(x, n - 1);
+        question = `If f(x) = x^${n}, what is f'(${x})?`;
+
+    } else if (type === 'algebraic') {
+        // Solve: ax + b = c
+        const a = Math.floor(Math.random() * 8) + 2;
+        const b = Math.floor(Math.random() * 20) - 10;
+        const c = Math.floor(Math.random() * 30) + 10;
+        answer = Math.round((c - b) / a);
+        question = `Solve for x: ${a}x ${b >= 0 ? '+' : ''}${b} = ${c}`;
+
+    } else if (type === 'exponent') {
+        // 2^x = value, solve for x
+        const x = Math.floor(Math.random() * 6) + 2;
+        const value = Math.pow(2, x);
+        answer = x;
+        question = `Solve for x: 2^x = ${value}`;
+
     } else {
-        num1 = Math.floor(Math.random() * 50) + 20;
-        num2 = Math.floor(Math.random() * 20) + 1;
-        answer = num1 - num2;
+        // System of equations simplified
+        const x = Math.floor(Math.random() * 5) + 1;
+        const y = Math.floor(Math.random() * 5) + 1;
+        const sum = x + y;
+        answer = x;
+        question = `If x + y = ${sum} and y = ${y}, what is x?`;
     }
 
-    const question = `${num1} ${op} ${num2}`;
+    // Generate 3 wrong answers close to the correct one
+    options = [answer];
+    const used = new Set([answer]);
 
-    // Generate 3 wrong answers
-    const options = [answer];
     while (options.length < 4) {
         let wrong;
-        if (op === '*') {
-            wrong = answer + Math.floor(Math.random() * 20) - 10;
+        if (Math.random() < 0.5) {
+            wrong = answer + Math.floor(Math.random() * 8) - 4;
         } else {
-            wrong = answer + Math.floor(Math.random() * 10) - 5;
+            wrong = Math.round(answer * (0.5 + Math.random()));
         }
-        if (wrong !== answer && wrong > 0 && !options.includes(wrong)) {
+
+        if (!used.has(wrong) && wrong !== answer && wrong > -20 && wrong < 100) {
             options.push(wrong);
+            used.add(wrong);
         }
     }
 
