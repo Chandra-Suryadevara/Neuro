@@ -223,8 +223,8 @@ io.on('connection', (socket) => {
 
         participant.currentQuestion++;
 
-        // Check if quiz complete (10 questions)
-        if (participant.currentQuestion >= 10) {
+        // Check if quiz complete (5 questions)
+        if (participant.currentQuestion >= 5) {
             // Send final choice
             socket.emit('show-final-choice');
 

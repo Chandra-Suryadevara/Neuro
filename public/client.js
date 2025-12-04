@@ -96,7 +96,7 @@ function displayQuestion(data) {
     });
 
     // Reset timer
-    timeLeft = 8;
+    timeLeft = 5;
     updateTimerDisplay();
 }
 
@@ -104,14 +104,14 @@ function displayQuestion(data) {
 function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
 
-    timeLeft = 8;
+    timeLeft = 5;
     updateTimerDisplay();
 
     timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
 
-        if (timeLeft <= 3) {
+        if (timeLeft <= 2) {
             timerElement.classList.add('urgent');
         }
 
