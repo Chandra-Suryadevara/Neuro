@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychology Experiment</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Waiting Screen -->
+        <div id="waiting-screen" class="screen active">
+            <div class="waiting-content">
+                <div class="pulse-circle"></div>
+                <h1 class="title">Welcome to the Experiment</h1>
+                <p class="subtitle">Please wait while the session begins...</p>
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <div class="quiz-header">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="quiz-info">
+                    <span id="question-number" class="question-number">Question 1/10</span>
+                    <span id="timer" class="timer">8s</span>
+                </div>
+            </div>
+            
+            <div class="quiz-content">
+                <h2 id="question-text" class="question-text">Loading...</h2>
+                
+                <div id="options-container" class="options-container">
+                    <!-- Options will be inserted here -->
+                </div>
+
+                <div id="feedback" class="feedback hidden">
+                    <span class="emoji">😠</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Choice Screen -->
+        <div id="choice-screen" class="screen">
+            <div class="choice-content">
+                <h1 class="choice-title">Make Your Choice</h1>
+                <p class="choice-subtitle">Select one of the following options:</p>
+                
+                <div class="choices">
+                    <button class="choice-btn guaranteed" data-choice="20-guaranteed">
+                        <div class="choice-icon">💵</div>
+                        <div class="choice-label">$20</div>
+                        <div class="choice-probability">100% Guaranteed</div>
+                    </button>
+                    
+                    <div class="vs-divider">OR</div>
+                    
+                    <button class="choice-btn risky" data-choice="100-risky">
+                        <div class="choice-icon">💰</div>
+                        <div class="choice-label">$100</div>
+                        <div class="choice-probability">20% Chance</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complete Screen -->
+        <div id="complete-screen" class="screen">
+            <div class="complete-content">
+                <div class="checkmark-circle">
+                    <svg class="checkmark" viewBox="0 0 52 52">
+                        <circle class="checkmark-circle-path" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h1 class="complete-title">Experiment Complete!</h1>
+                <p class="complete-subtitle">Thank you for your participation</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Psychology Experiment</title>
+    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1 class="admin-title">🔬 Experiment Control Panel</h1>
+            <div class="status-badge" id="status-badge">
+                <span class="status-indicator"></span>
+                <span id="status-text">Ready</span>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Participants Card -->
+            <div class="dashboard-card participants-card">
+                <div class="card-header">
+                    <h2 class="card-title">👥 Participants</h2>
+                </div>
+                <div class="card-content">
+                    <div class="stat-display">
+                        <div class="stat-number" id="total-participants">0</div>
+                        <div class="stat-label">Total Waiting</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Groups Card -->
+            <div class="dashboard-card groups-card">
+                <div class="card-header">
+                    <h2 class="card-title">📊 Group Distribution</h2>
+                </div>
+                <div class="card-content">
+                    <div class="group-stats">
+                        <div class="group-stat complex">
+                            <div class="group-icon">🧮</div>
+                            <div class="group-info">
+                                <div class="group-number" id="complex-count">0</div>
+                                <div class="group-label">Complex</div>
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="group-stat simple">
+                            <div class="group-icon">➕</div>
+                            <div class="group-info">
+                                <div class="group-number" id="simple-count">0</div>
+                                <div class="group-label">Simple</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Card -->
+            <div class="dashboard-card control-card">
+                <div class="card-header">
+                    <h2 class="card-title">⚡ Session Control</h2>
+                </div>
+                <div class="card-content">
+                    <button id="start-btn" class="start-btn">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Start Experiment</span>
+                    </button>
+                    <p class="control-hint" id="control-hint">Click to begin the session</p>
+                </div>
+            </div>
+
+            <!-- Progress Card -->
+            <div class="dashboard-card progress-card">
+                <div class="card-header">
+                    <h2 class="card-title">📈 Progress</h2>
+                </div>
+                <div class="card-content">
+                    <div class="progress-info">
+                        <div class="progress-label">
+                            <span>Completed Quizzes</span>
+                            <span id="completion-ratio">0/0</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div id="session-info" class="session-info hidden">
+                        <div class="info-item">
+                            <span class="info-label">Session Status:</span>
+                            <span class="info-value" id="session-status">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Visualization -->
+        <div id="results-section" class="results-section hidden">
+            <h2 class="section-title">📊 Results Analysis</h2>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">🧮 Complex Math Group</h3>
+                    <p class="chart-subtitle">Risk Choice Distribution</p>
+                    <canvas id="complex-chart"></canvas>
+                    <div class="chart-stats" id="complex-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Risky ($100):</span>
+                            <span class="stat-value" id="complex-risky">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Safe ($20):</span>
+                            <span class="stat-value" id="complex-safe">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3 class="chart-title">➕ Simple Math Group</h3>
+                    <p class="chart-subtitle">Risk Choice Distribution</p>
+                    <canvas id="simple-chart"></canvas>
+                    <div class="chart-stats" id="simple-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Risky ($100):</span>
+                            <span class="stat-value" id="simple-risky">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Safe ($20):</span>
+                            <span class="stat-value" id="simple-safe">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="admin-footer">
+            <p>Real-time updates via WebSocket • Psychology Experiment Platform</p>
+        </footer>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
