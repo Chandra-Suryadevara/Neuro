@@ -250,26 +250,35 @@ io.on('connection', (socket) => {
     // Participant submits answer
     socket.on('submit-answer', (data) => {
         const participant = sessionState.participants.get(socket.id);
-        if (!participant) return;
+        if (!participant) {
+            console.log('Submit answer - participant not found:', socket.id);
+            return;
+        }
+
+        console.log(`Participant ${socket.id} submitted answer for question ${participant.currentQuestion + 1}`);
 
         // Record answer
         participant.answers.push({
             question: data.question,
             answer: data.answer,
             correct: data.correct,
-            questionNumber: participant.currentQuestion
+            questionNumber: participant.currentQuestion + 1 // Store actual question number
         });
 
         participant.currentQuestion++;
 
         // Check if quiz complete (5 questions)
         if (participant.currentQuestion >= 5) {
+            console.log(`Participant ${socket.id} completed quiz, sending final choice`);
             // Send final choice
             socket.emit('show-final-choice');
 
             // Check if all participants completed quiz
-            checkAllQuizzesComplete();
+            setTimeout(() => {
+                checkAllQuizzesComplete();
+            }, 100); // Small delay to ensure state is consistent
         } else {
+            console.log(`Sending question ${participant.currentQuestion + 1} to ${socket.id}`);
             // Send next question
             sendQuestion(socket, participant);
         }
@@ -456,9 +465,16 @@ function assignParticipantToGroup(socket) {
 
 // Helper: Send question to participant
 function sendQuestion(socket, participant) {
+    if (!participant || !participant.group) {
+        console.log('Cannot send question - invalid participant');
+        return;
+    }
+
     const questionData = participant.group === 'complex'
         ? generateComplexQuestion()
         : generateSimpleQuestion();
+
+    console.log(`Sending question ${participant.currentQuestion + 1}/5 to ${socket.id} (${participant.group} group)`);
 
     socket.emit('question', {
         questionNumber: participant.currentQuestion + 1,
@@ -473,10 +489,16 @@ function sendQuestion(socket, participant) {
 
 // Helper: Check if all participants completed quiz
 function checkAllQuizzesComplete() {
-    const allComplete = Array.from(sessionState.participants.values())
-        .every(p => p.currentQuestion >= 5 || p.completed);
+    const participants = Array.from(sessionState.participants.values());
+    const total = participants.length;
+    const completed = participants.filter(p => p.currentQuestion >= 5 || p.completed).length;
 
-    if (allComplete) {
+    console.log(`Quiz completion check: ${completed}/${total} participants completed`);
+
+    const allComplete = participants.every(p => p.currentQuestion >= 5 || p.completed);
+
+    if (allComplete && total > 0) {
+        console.log('All participants completed quiz!');
         io.to('admin-room').emit('all-quizzes-complete');
     }
 }
